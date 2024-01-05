@@ -60,9 +60,14 @@ class AgentEnv(gym.Env):
         total_action_space = []
         # """
         # 卸载动作空间
-        offloading_act_space = spaces.Box(low=0, high=self.agent.num_servers + 1, shape=(self.agent.num_UEs,),
+        offloading_act_space = spaces.Box(low=0, high=1, shape=(self.agent.num_UEs,),
                                           dtype=np.float32)
         total_action_space.append(offloading_act_space)
+
+        # 关联动作空间
+        association_act_space = spaces.Box(low=0, high=self.agent.num_servers + 1, shape=(self.agent.num_UEs,),
+                                          dtype=np.float32)
+        total_action_space.append(association_act_space)
 
         # 缓存动作空间， 取值为0到1的浮点数
         caching_act_space = spaces.Box(low=0, high=1, shape=(self.agent.num_servers, self.max_service_type),
@@ -202,10 +207,11 @@ class AgentEnv(gym.Env):
             action = act
         else:
             action = action
-        map_offloading_action = np.round((((action[: agent.num_UEs] + 1) * (agent.num_servers+1)) / 2) + 0)
+        map_offloading_action = (action[: agent.num_UEs] + 1) / 2
 
+        map_association_action = np.round((((action[agent.num_UEs:agent.num_UEs*2] + 1) * agent.num_servers) / 2) + 0)
         # map_caching_action为0或者1的数，0没有服务，1有服务
-        map_caching_action = np.round((((action[agent.num_UEs:agent.num_UEs + agent.num_servers * self.max_service_type] + 1) * 1) / 2) + 0)
+        map_caching_action = np.round((((action[agent.num_UEs*2:agent.num_UEs*2 + agent.num_servers * self.max_service_type] + 1) * 1) / 2) + 0)
 
         # aa = self.agent.num_UEs + self.agent.num_servers * self.max_service_type
         # alpha = (action[aa: aa + self.agent.num_servers * self.agent.num_UEs] + 1.0001) / 2
@@ -216,8 +222,8 @@ class AgentEnv(gym.Env):
         # map_comp_power_action计算资源分配，总和为一
         # map_bandwidth_action带宽资源分配，总和为一
 
-        alpha_old = action[agent.num_UEs + agent.num_servers * self.max_service_type:agent.num_UEs + agent.num_servers * self.max_service_type + agent.num_servers * agent.num_UEs]
-        beta_old = action[agent.num_UEs + agent.num_servers * self.max_service_type + agent.num_servers * agent.num_UEs:]
+        alpha_old = action[agent.num_UEs*2 + agent.num_servers * self.max_service_type:agent.num_UEs*2 + agent.num_servers * self.max_service_type + agent.num_servers * agent.num_UEs]
+        beta_old = action[agent.num_UEs*2 + agent.num_servers * self.max_service_type + agent.num_servers * agent.num_UEs:]
         alpha_new = []
         beta_new = []
         for j in range(agent.num_servers):
@@ -239,6 +245,7 @@ class AgentEnv(gym.Env):
         # print(alpha)
 
         agent.action.offloading = map_offloading_action
+        agent.action.association = map_association_action
         agent.action.caching = map_caching_action
         agent.action.trans_band = map_bandwidth_action
         agent.action.trans_power = map_comp_power_action

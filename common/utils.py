@@ -65,7 +65,7 @@ def make_env(args):
     size = 0
     # # 获得每个智能体动作空间的大小60
     for j in range(len(env.action_space[0].spaces)):
-        if j == 0:
+        if j == 0 or j == 1:
             size += env.action_space[0].spaces[0].shape[0]
         else:
             size += env.action_space[0].spaces[j].shape[0] * env.action_space[0].spaces[j].shape[1]

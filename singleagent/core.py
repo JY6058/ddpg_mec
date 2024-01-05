@@ -25,8 +25,8 @@ class AgentState(object):
 class Action(object):
     def __init__(self):
         self.offloading = None
+        self.association = None
         self.caching = None
-        # self.association = None
         self.trans_band = None
         self.trans_power = None
 

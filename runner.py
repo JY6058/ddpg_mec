@@ -268,7 +268,7 @@ class Runner:
                 s = s_next
 
             print(act[0].offloading)
-            # print(act[0].caching)
+            print(act[0].association)
             # # print(act[0].trans_band)
             # # print(act[0].trans_power)
             print(cost)

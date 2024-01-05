@@ -23,9 +23,9 @@ class Actor(nn.Module):
         # self.fc1 = nn.Conv1d(in_channels=args.obs_shape[agent_id], out_channels=75, kernel_size=1, groups=15, bias=True)
         self.fc1 = nn.Linear(args.obs_shape, 256)
         # self.lstm2 = nn.LSTM(256, 128, 1)
-        self.fc2 = nn.Linear(256, 128)
+        self.fc2 = nn.Linear(256, 256)
         # self.fc3 = nn.Linear(512, 256)
-        self.action_out = nn.Linear(128, args.action_shape)  # shape 15
+        self.action_out = nn.Linear(256, args.action_shape)  # shape 15
 
         # self.action_out1 = nn.Linear(128, 10)  # shape 10
         # self.action_out2 = nn.Linear(128, 15)  # shape 15

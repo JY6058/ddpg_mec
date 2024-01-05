@@ -157,24 +157,19 @@ class Scenario(BaseScenario):
         for i in range(agent.num_UEs):
             flag_local = 0
             flag_bs = 0
-            if agent.action.offloading[i] == 0 or agent.action.offloading[i] == agent.num_servers+1:  # 本地处理
-                proc_delay[i] = self.loc_time(i, agent)
+            if agent.action.association[i] == 0:
+                proc_delay[i] = self.loc_time(i, agent, 1)
                 flag_local = 1
             else:
                 for j in range(agent.num_servers):
-                    caching_j = agent.action.caching[j * world.max_service_type:(j * world.max_service_type + world.max_service_type)]
-                    # print("i=",i," j=",j, " i所需的服务=", int(requested_service[i]),"卸载决策：",agent.action.offloading[i])
-                    # print(caching_j)
-                    # print('-------',caching_j[int(requested_service[i])])
-                    if agent.action.offloading[i] == j+1 and caching_j[int(requested_service[i])] == 1.0 and agent.action.trans_band[j*agent.num_UEs+i]>0:
-                        proc_delay[i] = self.off_time(i, j, agent)
-
-                        # print("带宽为：",agent.action.trans_band[j*agent.num_UEs+i])
-                        # print("计算资源：",agent.action.trans_power[j*agent.num_UEs+i])
-                        # print("时延为:", proc_delay[i])
-                        # print('--------------')
+                    caching_j = agent.action.caching[
+                                j * world.max_service_type:(j * world.max_service_type + world.max_service_type)]
+                    if agent.action.association[i] == j+1 and caching_j[int(requested_service[i])] == 1.0 and agent.action.trans_band[j*agent.num_UEs+i]>0:
+                        a = agent.action.offloading[i]
+                        proc_delay[i] = self.loc_time(i, agent, 1-a) + self.off_time(i, j, agent, a)
                         flag_bs = 1
                         num_bs_processing += 1
+
             if flag_local + flag_bs < 1:
                 proc_delay[i] = 1000  # 不满足上述任何任务情况
             else:
@@ -186,26 +181,27 @@ class Scenario(BaseScenario):
         return proc_delay, num_bs_processing
 
     # 本地计算时间
-    def loc_time(self, i, agent):
+    def loc_time(self, i, agent, a):
+        # a 表示比例
         task_size = np.round((((agent.state.n_task - 0) * 20) / 1) + 0) + 10
         delay_tolerance = np.round((((agent.state.delay_tolerance - 0) * 20) / 1) + 0) + 10
 
         # self.loc_comp_time = task_size[i] * agent.n_X / (agent.comp_fre*(1+agent.bias))
-        self.loc_comp_time = task_size[i] * agent.n_X / agent.comp_fre
+        self.loc_comp_time = a * task_size[i] * agent.n_X / agent.comp_fre
         return self.loc_comp_time
 
     # 卸载时延
-    def off_time(self, i, j, agent):
+    def off_time(self, i, j, agent, a):
         task_size = np.round((((agent.state.n_task - 0) * 20) / 1) + 0) + 10
         delay_tolerance = np.round((((agent.state.delay_tolerance - 0) * 20) / 1) + 0) + 10
         alpha = agent.action.trans_band[j*agent.num_UEs+i]
         beta = agent.action.trans_power[j*agent.num_UEs+i]
-        self.off_cmp_time = self.trans_time(i, j, alpha, agent) + self.bs_comp_time(i, j, beta, agent)
+        self.off_cmp_time = self.trans_time(i, j, alpha, agent, a) + self.bs_comp_time(i, j, beta, agent, a)
 
         return self.off_cmp_time
 
     # 传输时间
-    def trans_time(self, i, j, alpha, agent):
+    def trans_time(self, i, j, alpha, agent, a):
         task_size = np.round((((agent.state.n_task - 0) * 20) / 1) + 0) + 10
         delay_tolerance = np.round((((agent.state.delay_tolerance - 0) * 20) / 1) + 0) + 10
         d = math.sqrt(pow(self.points[i][0]-self.points[agent.num_UEs+j][0], 2)+pow(self.points[i][1]-self.points[agent.num_UEs+j][1], 2))
@@ -214,7 +210,7 @@ class Scenario(BaseScenario):
             self.time_trans = 0
         else:
             self.trans_rate = alpha * agent.bandwidth * math.log2(1.0 + agent.power * d**(-agent.path_loss_factor) / (agent.sigma+agent.interference))
-            self.time_trans = task_size[i] / self.trans_rate
+            self.time_trans = a * task_size[i] / self.trans_rate
         return self.time_trans
 
     # # MD到BS的传输能耗
@@ -234,12 +230,12 @@ class Scenario(BaseScenario):
     #     return self.energy_comp
 
     # BS计算时间
-    def bs_comp_time(self, i, j, beta, agent):
+    def bs_comp_time(self, i, j, beta, agent, a):
         task_size = np.round((((agent.state.n_task - 0) * 20) / 1) + 0) + 10
         delay_tolerance = np.round((((agent.state.delay_tolerance - 0) * 20) / 1) + 0) + 10
 
         # self.bs_time1 = task_size[i] * agent.n_X / beta / (agent.comp[j]*(1+agent.bias))
-        self.bs_time1 = task_size[i] * agent.n_X / beta / agent.comp[j]
+        self.bs_time1 = a * task_size[i] * agent.n_X / beta / agent.comp[j]
         return self.bs_time1
 
     # # BS转发任务到相邻BS的时间
