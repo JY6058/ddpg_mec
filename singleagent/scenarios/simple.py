@@ -125,8 +125,19 @@ class Scenario(BaseScenario):
                 caching_penalty[j] = 2
             else:
                 caching_penalty[j] = 0
+        # 关联容量约束回报
+        association_penalty = np.zeros(agent.num_servers)
+        for j in range(agent.num_servers):
+            num = 0
+            for i in range(agent.num_UEs):
+                if agent.action.association[i] == j:
+                    num += 1
+            if num <= agent.association_restraint:
+                association_penalty[j] = 2
+            else:
+                association_penalty = 0
         # 总回报
-        reward = 0 - sum(cost_delay) + sum(reward_delay) + sum(caching_penalty)
+        reward = 0 - sum(cost_delay) + sum(reward_delay) + sum(caching_penalty) + sum(association_penalty)
         time_delay = 0 - sum(cost_delay)
         return reward, time_delay, hit_num, cost_delay
 

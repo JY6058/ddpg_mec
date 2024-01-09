@@ -38,8 +38,9 @@ class Agent(object): # agent基站,设置基站属性
         # self.bandwidth = 200 # 20.0 # 单位MHz, 边缘服务器的带宽资源 10MHz
         # self.comp = 12500 # 3200  # 单位MHz, 边缘服务器的计算资源3200MHz
         self.bandwidth = 200  # M
-        self.comp = [15000, 15000, 15000]
+        self.comp = [12000, 12000, 12000]
         self.cache_storage = 50 # 200 # 单位200GB, 缘服务器中的缓存资源
+        self.association_restraint = 5
         # self.each_storage = 10 # 10  # 每个service所需存储空间GB
         self.trans_BSs = 1.8 # 2 # 单位Mbps, 边缘服务器的转发到其他基站的速率
         self.trans_cloud = 0.5 # 0.5 # 单位Mbps, 边缘服务器的转发到云端的速率
