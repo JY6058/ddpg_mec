@@ -157,18 +157,16 @@ class Scenario(BaseScenario):
         for i in range(agent.num_UEs):
             flag_local = 0
             flag_bs = 0
-            if agent.action.association[i] == 0:
-                proc_delay[i] = self.loc_time(i, agent, 1)
-                flag_local = 1
-            else:
-                for j in range(agent.num_servers):
-                    caching_j = agent.action.caching[
-                                j * world.max_service_type:(j * world.max_service_type + world.max_service_type)]
-                    if agent.action.association[i] == j+1 and caching_j[int(requested_service[i])] == 1.0 and agent.action.trans_band[j*agent.num_UEs+i]>0:
-                        a = agent.action.offloading[i]
-                        proc_delay[i] = self.loc_time(i, agent, 1-a) + self.off_time(i, j, agent, a)
-                        flag_bs = 1
-                        num_bs_processing += 1
+            for j in range(agent.num_servers):
+                caching_j = agent.action.caching[j * world.max_service_type:(j * world.max_service_type + world.max_service_type)]
+                if agent.action.association[i] == j and caching_j[int(requested_service[i])] == 1.0 and agent.action.trans_band[j*agent.num_UEs+i]>0:
+                    a = agent.action.offloading[i]
+                    proc_delay[i] = self.loc_time(i, agent, 1-a) + self.off_time(i, j, agent, a)
+                    flag_bs = 1
+                    num_bs_processing += 1
+                elif agent.action.association[i] == j and caching_j[int(requested_service[i])] != 1.0:
+                    proc_delay[i] = self.loc_time(i, agent, 1)
+                    flag_local = 1
 
             if flag_local + flag_bs < 1:
                 proc_delay[i] = 1000  # 不满足上述任何任务情况

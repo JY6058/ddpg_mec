@@ -65,7 +65,7 @@ class AgentEnv(gym.Env):
         total_action_space.append(offloading_act_space)
 
         # 关联动作空间
-        association_act_space = spaces.Box(low=0, high=self.agent.num_servers + 1, shape=(self.agent.num_UEs,),
+        association_act_space = spaces.Box(low=0, high=1, shape=(self.agent.num_UEs,),
                                           dtype=np.float32)
         total_action_space.append(association_act_space)
 
@@ -209,8 +209,9 @@ class AgentEnv(gym.Env):
             action = action
         map_offloading_action = (action[: agent.num_UEs] + 1) / 2
 
-        map_association_action = np.round((((action[agent.num_UEs:agent.num_UEs*2] + 1) * agent.num_servers) / 2) + 0)
+        map_association_action = np.round((((action[agent.num_UEs:agent.num_UEs*2] + 1) * (agent.num_servers-1)) / 2) + 0)
         # map_caching_action为0或者1的数，0没有服务，1有服务
+        # print(map_association_action)
         map_caching_action = np.round((((action[agent.num_UEs*2:agent.num_UEs*2 + agent.num_servers * self.max_service_type] + 1) * 1) / 2) + 0)
 
         # aa = self.agent.num_UEs + self.agent.num_servers * self.max_service_type
