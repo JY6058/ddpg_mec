@@ -135,7 +135,7 @@ class Scenario(BaseScenario):
             if num <= agent.association_restraint:
                 association_penalty[j] = 2
             else:
-                association_penalty = 0
+                association_penalty[j] = 0
         # 总回报
         reward = 0 - sum(cost_delay) + sum(reward_delay) + sum(caching_penalty) + sum(association_penalty)
         time_delay = 0 - sum(cost_delay)
